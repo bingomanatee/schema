@@ -1,5 +1,5 @@
-import addTwo from './addTwo';
+import Schema from './Schema';
 
 export default {
-  addTwo,
+  Schema,
 };

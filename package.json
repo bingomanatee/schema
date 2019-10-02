@@ -18,7 +18,8 @@
     "babel-eslint": "^10.0.3",
     "eslint-plugin-react-hooks": "^2.1.1",
     "is": "^3.3.0",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.15",
+    "lodash.get": "^4.4.2"
   },
   "devDependencies": {
     "eslint": "^6.3.0",
