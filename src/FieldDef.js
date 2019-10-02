@@ -3,6 +3,7 @@ import is from 'is';
 import FieldState from './FieldState';
 
 import { ABSENT, isAbsent } from './utils/absent';
+import { s } from './utils';
 
 function doValidator(value, test, def) {
   if (is.string(test)) {
@@ -34,9 +35,8 @@ class FieldDef {
       params = { validator: params };
     }
     const {
-      type,
+      type = ABSENT,
       validator = ABSENT,
-      checked = true,
       required = false,
       defaultValue = ABSENT,
       requiredMessage = ABSENT,
@@ -45,7 +45,6 @@ class FieldDef {
     } = params;
     this.name = name;
     this.type = type || '';
-    this.checked = checked;
     this.validator = validator;
     this.required = !!required;
     this.stopIfInvalid = stopIfInvalid; //  you want to stop on the first error
@@ -60,38 +59,49 @@ class FieldDef {
    * @returns FieldState
    */
   validate(value = ABSENT) {
-    const errors = [];
-    if (isAbsent(value)) {
-      if (this.required) {
-        errors.push(this.requiredMessage);
+    const out = new FieldState(this.name, value);
+    if ((isAbsent(value) || !value) && !this.required) {
+      return out;
+    }
+
+    if (!isAbsent(this.type)) {
+      const testError = doValidator(value, this.type, this);
+      if (testError) {
+        out.errors.push(`${this.name}: ${s(value)} is not a ${this.type}`);
       }
-    } else if (Array.isArray(this.validator)) {
+    }
+
+    if (this.stopIfInvalid && out.errors.length) {
+      return out;
+    }
+
+    if (Array.isArray(this.validator)) {
       this.validator.forEach((validator) => {
-        if (errors.length && this.stopIfInvalid) {
+        if (out.errors.length && this.stopIfInvalid) {
           return;
         }
         const error = doValidator(value, validator, this);
         if (error) {
-          errors.push(error === true ? this.invalidMessage : error);
+          out.errors.push(error === true ? this.invalidMessage : error);
         }
       });
     } else if (!isAbsent(this.validator)) {
       const error = doValidator(value, this.validator, this);
       if (error) {
-        errors.push((error === true || (!is.string(error))) ? this.invalidMessage : error);
+        out.errors.push((error === true || (!is.string(error))) ? this.invalidMessage : error);
       }
     }
-    return new FieldState(this.name, value, errors);
+    return out;
   }
 }
 
 propper(FieldDef)
-  .addProp('checked', {
-    type: 'boolean',
-    defaultValue: ABSENT,
-  })
   .addProp('validator', {
     defaultValue: ABSENT,
+  })
+  .addProp('type', {
+    defaultValue: ABSENT,
+    required: false,
   })
   .addProp('defaultValue', {
     defaultValue: ABSENT,
