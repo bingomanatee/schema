@@ -1,7 +1,8 @@
+/* eslint-disable no-param-reassign */
 import propper from '@wonderlandlabs/propper';
 import is from 'is';
+import lGet from 'lodash.get';
 import FieldState from './FieldState';
-
 import { ABSENT, isAbsent } from './utils/absent';
 import { s } from './utils';
 
@@ -29,11 +30,16 @@ function doValidator(value, test, def) {
  *
  */
 class FieldDef {
-  constructor(name, params = {}) {
-    if (is.string(params) || is.function(params) || is.array(params)) {
-      // eslint-disable-next-line no-param-reassign
+  constructor(name, params = {}, schema) {
+    if (is.string(params)) {
+      params = { type: params };
+    } else if (is.function(params) || is.array(params)) {
       params = { validator: params };
     }
+    this.schema = schema;
+
+    const defaults = lGet(schema, 'fieldDefaults', {});
+    params = { ...defaults, ...params };
     const {
       type = ABSENT,
       validator = ABSENT,
@@ -58,7 +64,7 @@ class FieldDef {
    * @param value
    * @returns FieldState
    */
-  validate(value = ABSENT) {
+  validate(value) {
     const out = new FieldState(this.name, value);
     if ((isAbsent(value) || !value) && !this.required) {
       return out;
@@ -96,6 +102,10 @@ class FieldDef {
 }
 
 propper(FieldDef)
+  .addProp('schema', {
+    type: 'object',
+    required: false,
+  })
   .addProp('validator', {
     defaultValue: ABSENT,
   })

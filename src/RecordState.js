@@ -11,18 +11,19 @@ class RecordState {
   }
 
   validate(record, filter = null) {
-    this.schema.fields.forEach((validator, name) => {
+    this.schema.fields.forEach((fieldDef, name) => {
+      const value = record[name];
       if (Array.isArray(filter) && !filter.includes(name)) {
-        this.fields.set(name, new FieldState(name, { checked: false }));
+        this.fields.set(name, new FieldState(name, value, [], false));
         return;
       }
-      const validationResult = validator.validate(record[name]);
+      const validationResult = fieldDef.validate(value);
       this.fields.set(name, validationResult);
     });
   }
 
   get isValid() {
-    return Array.from(this.fields.values)
+    return Array.from(this.fields.values())
       .reduce((v, state) => v && state.isValid, true);
   }
 }

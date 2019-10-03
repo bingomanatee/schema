@@ -1,7 +1,7 @@
 {
-  "name": "@wonderlandlabs/looking-glass-engine",
-  "version": "2.0.6",
-  "description": "Describe looking-glass-engine here",
+  "name": "@wonderlandlabs/schema",
+  "version": "1.0.0",
+  "description": "An object validation system",
   "main": "lib/index.js",
   "module": "es/index.js",
   "files": [
